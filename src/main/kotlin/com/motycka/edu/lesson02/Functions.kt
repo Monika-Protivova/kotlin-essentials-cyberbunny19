@@ -1,30 +1,59 @@
 package com.motycka.edu.lesson02
 
+// Global map to store orders
 val coffeeOrders = mutableMapOf<Int, List<String>>()
+var nextOrderId = 1
 
 fun main() {
-    // You can write code here to try the functions
-    processOrder(listOf(ESPRESSO, CAPPUCCINO, CAPPUCCINO, AMERICANO), 20.0)
-    processOrder(listOf(ESPRESSO, FLAT_WHITE, AMERICANO), 10.0)
-    // processOrder(listOf(ESPRESSO, ESPRESSO, DOUBLE_ESPRESSO), 5.0) // will fail due to insufficient payment
+    // Test calls
+    println("Change: ${processOrder(listOf(ESPRESSO, CAPPUCCINO, CAPPUCCINO, AMERICANO), 20.0)}\n")
+    println("Change: ${processOrder(listOf(ESPRESSO, FLAT_WHITE, AMERICANO), 10.0)}\n")
+    // println("Change: ${processOrder(listOf(ESPRESSO, ESPRESSO, DOUBLE_ESPRESSO), 5.0)}\n")
 }
 
-/* Implement the functions below */
-
 fun processOrder(items: List<String>, payment: Double): Double {
-    val orderId = TODO("call placerOrder(items)")
-    val totalToPay = TODO("call payOrder(orderId)")
+    val orderId = placeOrder(items)
+    val totalToPay = payOrder(orderId)
 
-    val change = TODO("calculate change by subtracting totalToPay from payment")
+    if (payment < totalToPay) {
+        throw IllegalArgumentException("Insufficient payment. Required: $totalToPay, Provided: $payment")
+    }
 
-    // TODO call completeOrder(orderId)
+    val change = payment - totalToPay
+    completeOrder(orderId)
 
     return change
 }
 
-// TODO Implement placerOrder(items: List<String>): Int
+fun placeOrder(items: List<String>): Int {
+    val orderId = nextOrderId++
+    coffeeOrders[orderId] = items
+    println("Order placed. ID: $orderId, Items: $items")
+    return orderId
+}
 
-// TODO Implement payOrder(orderId: Int): Double
+fun payOrder(orderId: Int): Double {
+    val items = coffeeOrders[orderId] ?: error("Order ID not found.")
+    val prices = items.map { getPrice(it) }
+    val total = prices.sum()
+    val discount = if (items.size >= 3) prices.minOrNull() ?: 0.0 else 0.0
+    val totalAfterDiscount = total - discount
+    println("Total for Order ID $orderId (discount applied if any): $totalAfterDiscount")
+    return totalAfterDiscount
+}
 
-// TODO Implement completeOrder(orderId: Int)
+fun completeOrder(orderId: Int) {
+    println("Order $orderId completed. Thank you!\n")
+}
 
+fun getCoffeePrice(item: String): Double {
+    return when (item) {
+        ESPRESSO -> ESPRESSO_PRICE
+        DOUBLE_ESPRESSO -> DOUBLE_ESPRESSO_PRICE
+        CAPPUCCINO -> CAPPUCCINO_PRICE
+        LATTE -> LATTE_PRICE
+        AMERICANO -> AMERICANO_PRICE
+        FLAT_WHITE -> FLAT_WHITE_PRICE
+        else -> 0.0
+    }
+}
